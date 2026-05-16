@@ -12,13 +12,21 @@ type Pending = {
 export class SessionBridge implements PreflightBridge {
   private plugin: WebSocket | null = null
   private pending = new Map<string, Pending>()
+  private framerUserId: string | null = null
 
   attach(socket: WebSocket): void {
     this.plugin = socket
 
     socket.on("message", (raw) => {
       try {
-        const msg = JSON.parse(String(raw)) as BridgeMessage
+        const msg = JSON.parse(String(raw)) as BridgeMessage & {
+          type?: string
+          framerUserId?: string
+        }
+        if (msg.type === "register" && msg.framerUserId?.trim()) {
+          this.framerUserId = msg.framerUserId.trim()
+          return
+        }
         if (msg.type !== "response") return
         const entry = this.pending.get(msg.id)
         if (!entry) return
@@ -38,6 +46,10 @@ export class SessionBridge implements PreflightBridge {
 
   isPluginConnected(): boolean {
     return this.plugin?.readyState === 1
+  }
+
+  getFramerUserId(): string | null {
+    return this.framerUserId
   }
 
   async call(method: string, params?: unknown, timeoutMs = 120_000): Promise<unknown> {

@@ -8,3 +8,9 @@ services:
     envVars:
       - key: PORT
         value: "8080"
+      # Stripe (required for Preflight Pro billing)
+      # - key: STRIPE_SECRET_KEY
+      # - key: STRIPE_WEBHOOK_SECRET
+      # - key: STRIPE_PRICE_ID
+      # - key: PREFLIGHT_PUBLIC_URL
+      #   value: https://preflight-mcp-relay.onrender.com

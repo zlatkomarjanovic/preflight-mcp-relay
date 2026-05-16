@@ -2,7 +2,9 @@ import { randomUUID } from "node:crypto"
 import { createServer } from "node:http"
 import type { IncomingMessage } from "node:http"
 import type { Request, Response } from "express"
-import { createMcpExpressApp } from "@modelcontextprotocol/sdk/server/express.js"
+import express from "express"
+import { isBillingEnforced } from "./billing/config.js"
+import { registerBillingRoutes, registerBillingWebhook } from "./billing/routes.js"
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js"
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js"
 import { WebSocketServer } from "ws"
@@ -39,10 +41,18 @@ function mcpTransportKey(preflightSession: string, mcpSessionId: string): string
 
 export async function startCloudRelay(): Promise<void> {
   const port = Number(process.env.PORT ?? 8080)
-  const app = createMcpExpressApp({ host: "0.0.0.0" })
+  const app = express()
+
+  registerBillingWebhook(app)
+  app.use(express.json({ limit: "4mb" }))
+  registerBillingRoutes(app)
 
   app.get("/health", (_req: Request, res: Response) => {
-    res.json({ ok: true, service: "preflight-mcp-relay" })
+    res.json({
+      ok: true,
+      service: "preflight-mcp-relay",
+      billing: isBillingEnforced(),
+    })
   })
 
   app.post("/mcp", async (req: Request, res: Response) => {

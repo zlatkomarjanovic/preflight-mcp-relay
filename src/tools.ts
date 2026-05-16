@@ -1,5 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import * as z from "zod"
+import { PRO_PRICE_DISPLAY } from "./billing/config.js"
+import { isProUser } from "./billing/stripeService.js"
 import type { PreflightBridge } from "./bridgeInterface.js"
 
 function textResult(data: unknown) {
@@ -13,6 +15,12 @@ function toolError(message: string) {
     content: [{ type: "text" as const, text: message }],
     isError: true as const,
   }
+}
+
+async function requireProForBridge(bridge: PreflightBridge): Promise<string | null> {
+  const userId = bridge.getFramerUserId?.() ?? null
+  if (await isProUser(userId)) return null
+  return `Preflight Pro required (${PRO_PRICE_DISPLAY}). Subscribe in the Preflight plugin in Framer, then retry.`
 }
 
 export function registerPreflightTools(server: McpServer, bridge: PreflightBridge): void {
@@ -103,6 +111,8 @@ export function registerPreflightTools(server: McpServer, bridge: PreflightBridg
       annotations: { destructiveHint: false },
     },
     async (args) => {
+      const denied = await requireProForBridge(bridge)
+      if (denied) return toolError(denied)
       try {
         return textResult(await bridge.call("set_image_alt", args))
       } catch (e) {
@@ -121,6 +131,8 @@ export function registerPreflightTools(server: McpServer, bridge: PreflightBridg
       },
     },
     async (args) => {
+      const denied = await requireProForBridge(bridge)
+      if (denied) return toolError(denied)
       try {
         return textResult(await bridge.call("set_link", args))
       } catch (e) {
@@ -140,6 +152,8 @@ export function registerPreflightTools(server: McpServer, bridge: PreflightBridg
       },
     },
     async (args) => {
+      const denied = await requireProForBridge(bridge)
+      if (denied) return toolError(denied)
       try {
         return textResult(await bridge.call("set_page_seo", args))
       } catch (e) {
@@ -159,6 +173,8 @@ export function registerPreflightTools(server: McpServer, bridge: PreflightBridg
       },
     },
     async (args) => {
+      const denied = await requireProForBridge(bridge)
+      if (denied) return toolError(denied)
       try {
         return textResult(await bridge.call("set_cms_text_field", args))
       } catch (e) {
@@ -178,6 +194,8 @@ export function registerPreflightTools(server: McpServer, bridge: PreflightBridg
       },
     },
     async (args) => {
+      const denied = await requireProForBridge(bridge)
+      if (denied) return toolError(denied)
       try {
         return textResult(await bridge.call("set_cms_image_alt", args))
       } catch (e) {

@@ -3,4 +3,5 @@
 export interface PreflightBridge {
   isPluginConnected(): boolean
   call(method: string, params?: unknown, timeoutMs?: number): Promise<unknown>
+  getFramerUserId?(): string | null
 }
