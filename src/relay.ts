@@ -5,6 +5,7 @@ import type { Request, Response } from "express"
 import express from "express"
 import { isBillingEnforced } from "./billing/config.js"
 import { registerBillingRoutes, registerBillingWebhook } from "./billing/routes.js"
+import { preflightCors } from "./cors.js"
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js"
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js"
 import { WebSocketServer } from "ws"
@@ -42,6 +43,8 @@ function mcpTransportKey(preflightSession: string, mcpSessionId: string): string
 export async function startCloudRelay(): Promise<void> {
   const port = Number(process.env.PORT ?? 8080)
   const app = express()
+
+  app.use(preflightCors)
 
   registerBillingWebhook(app)
   app.use(express.json({ limit: "4mb" }))

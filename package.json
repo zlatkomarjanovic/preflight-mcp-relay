@@ -1,6 +1,6 @@
 {
   "name": "@zlatkomarjanovicorg2000/preflight-mcp-server",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "MCP server for Framer Preflight — connect Claude to audits and auto-fix your project",
   "type": "module",
   "main": "./dist/index.js",
